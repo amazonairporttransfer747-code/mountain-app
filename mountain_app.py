@@ -1,53 +1,56 @@
 import json
 import os
 
-# 讀取與輸出路徑
+# 設定路徑
 input_path = "data/osm_peaks.json"
-output_path = "data/peaks_sorted.geojson"
+output_path = "data/peaks_fixed.geojson"
 
-if not os.path.exists(input_path):
-    print(f"找不到原始檔案: {input_path}")
-else:
+def process_data():
+    if not os.path.exists(input_path):
+        print(f"錯誤：找不到檔案 {input_path}")
+        return
+
     with open(input_path, "r", encoding="utf-8") as f:
-        osm_data = json.load(f)
+        data = json.load(f)
 
     features = []
-
-    for element in osm_data.get("elements", []):
-        if element.get("type") == "node":
-            lat = element.get("lat")
-            lon = element.get("lon")
-            tags = element.get("tags", {})
+    
+    for item in data.get("elements", []):
+        if item.get("type") == "node":
+            tags = item.get("tags", {})
+            # 確保有海拔資料，若無則顯示 '未知'
+            ele = tags.get("ele", "未知")
             
-            if lat and lon:
+            # GeoJSON 規範：先經度(lon/X)，後緯度(lat/Y)
+            # 若原始資料 XY 軸偏掉，這裡確保 geometry 格式正確
+            lon = item.get("lon")
+            lat = item.get("lat")
+            
+            if lon and lat:
                 feature = {
                     "type": "Feature",
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [lon, lat]
+                        "coordinates": [float(lon), float(lat)]
                     },
                     "properties": {
-                        "id": element.get("id"),
-                        "name": tags.get("name", "未命名"),
-                        "name:zh": tags.get("name:zh", tags.get("name", "未命名")),
-                        "ele": tags.get("ele"),
-                        "ref": tags.get("ref"),
-                        **tags
+                        "name": tags.get("name:zh", tags.get("name", "未命名")),
+                        "ele": ele,
+                        "lat": lat,
+                        "lon": lon
                     }
                 }
                 features.append(feature)
 
-    # 依照地理位置排序：
-    # 1. 由北到南：緯度 (lat) 由大到小降冪排序
-    # 2. 由西到東：經度 (lon) 由小到大升冪排序
-    features.sort(key=lambda x: (-x["geometry"]["coordinates"][1], x["geometry"]["coordinates"][0]))
+    # 排序邏輯：由北到南 (lat降序)，由西到東 (lon升序)
+    features.sort(key=lambda x: (-x["properties"]["lat"], x["properties"]["lon"]))
 
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features
-    }
+    # 封裝
+    geojson = {"type": "FeatureCollection", "features": features}
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(geojson, f, ensure_ascii=False, indent=2)
+    
+    print(f"處理完成！修正後的資料已儲存至: {output_path}")
 
-    print(f"處理完成！已成功排序並儲存至: {output_path}")
+process_data()
