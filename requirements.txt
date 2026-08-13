@@ -1,5 +1,5 @@
-streamlit
-pandas
-requests
-folium
-streamlit-folium
+streamlit>=1.32
+geopandas>=0.14
+pandas>=2.0
+requests>=2.31
+shapely>=2.0
