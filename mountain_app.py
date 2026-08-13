@@ -17,23 +17,17 @@ def load_mountain_data():
   try:
     df = pd.read_csv("filtered_mountain_data.csv", encoding="utf-8-sig")
 
-    # 如果 CSV 裡面原本有品牌欄位則自動移除
     if "品牌/協會" in df.columns:
       df = df.drop(columns=["品牌/協會"])
 
-    # 智慧座標校正：如果 X 和 Y 欄位數值顛倒（例如 X 存成緯度 23-25，Y 存成經度 120-122），自動互換
+    # 強制修正座標：如果 WGS_X 的數值在 20~26 之間（代表它是緯度），就跟 WGS_Y 互換
     if "WGS_X" in df.columns and "WGS_Y" in df.columns:
-      # 台灣緯度約 21~25，經度約 119~122
-      if df["WGS_X"].mean() < 30 and df["WGS_Y"].mean() > 100:
-        # 發現 X 跟 Y 顛倒了，進行互換
+      if df["WGS_X"].mean() < 30:
         df["WGS_X"], df["WGS_Y"] = df["WGS_Y"], df["WGS_X"]
 
     return df
   except Exception as e:
-    st.error(
-        f"讀取 `filtered_mountain_data.csv` 失敗，請檢查檔名或格式是否正確。"
-        f" 錯誤訊息: {e}"
-    )
+    st.error(f"讀取檔案失敗，錯誤訊息: {e}")
     return pd.DataFrame()
 
 
@@ -47,14 +41,11 @@ if df.empty:
 else:
   st.sidebar.header("🔍 查詢與篩選面板")
 
-  # 1. 手動輸入山名
   search_name = st.sidebar.text_input("手動輸入山名關鍵字", "")
 
-  # 2. 縣市選項 (包含 ALL)
   city_options = ["ALL"] + sorted(df["縣市"].dropna().unique().tolist())
   selected_city = st.sidebar.selectbox("選擇縣市", city_options)
 
-  # 3. 鄉鎮市選項 (包含 ALL)
   if selected_city == "ALL":
     town_options = ["ALL"] + sorted(df["鄉鎮市區"].dropna().unique().tolist())
   else:
@@ -66,7 +57,6 @@ else:
     )
   selected_town = st.sidebar.selectbox("選擇鄉鎮市區", town_options)
 
-  # 執行篩選邏輯
   filtered_df = df.copy()
 
   if search_name.strip():
@@ -80,14 +70,12 @@ else:
   if selected_town != "ALL":
     filtered_df = filtered_df[filtered_df["鄉鎮市區"] == selected_town]
 
-  # 在最右邊動態加入 Google GPX 搜尋網址欄位
   filtered_df["Google GPX 搜尋"] = filtered_df["名稱"].apply(
       lambda x: f"https://www.google.com/search?q={urllib.parse.quote(str(x) + ' GPX')}"
   )
 
   st.success(f"目前顯示筆數：{len(filtered_df)} 筆山岳資料")
 
-  # 顯示表格與超連結欄位設定
   st.subheader("📊 山岳資料列表")
   st.dataframe(
       filtered_df,
@@ -102,7 +90,6 @@ else:
       },
   )
 
-  # 匯出按鈕
   csv_data = filtered_df.to_csv(index=False, encoding="utf-8-sig")
   st.download_button(
       label="📥 下載目前的山岳資料為 CSV 檔案",
@@ -122,10 +109,8 @@ else:
     center_lat = filtered_df["WGS_Y"].mean()
     center_lon = filtered_df["WGS_X"].mean()
 
-    # 建立地圖
     m = folium.Map(location=[center_lat, center_lon], zoom_start=9, tiles=None)
 
-    # 加入圖層：OSM、衛星圖、等高線地形圖
     folium.TileLayer("OpenStreetMap", name="標準地圖 (OSM)").add_to(m)
     folium.TileLayer(
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -138,7 +123,6 @@ else:
         name="等高線地形圖",
     ).add_to(m)
 
-    # 加入標記與 Google 搜尋 GPX 連結
     for _, row in filtered_df.iterrows():
       m_name = row.get("名稱", "未命名")
       lat = row.get("WGS_Y")
