@@ -244,7 +244,7 @@ def query_mountains(county, township):
         try:
             response = requests.post(
                 overpass_url,
-                data=query.encode("utf-8"),"
+                data=query.encode("utf-8"),
 headers=HEADERS,
 timeout=180,
 )
