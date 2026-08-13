@@ -13,6 +13,44 @@ st.title("🏔️ 亞馬遜國家山岳協會 - 台灣山岳地圖與查詢系�
 st.markdown("---")
 
 
+# 根據經緯度自動判斷台灣縣市與山區鄉鎮的輔助函數
+def get_location_info(lat, lon):
+  if lat is None or lon is None:
+    return "台灣地區", "未分類"
+
+  if lat > 24.8:
+    if lon < 121.4:
+      return "新北市", "淡水/三芝區"
+    else:
+      return "新北市", "瑞芳/貢寮區"
+  elif lat > 24.5:
+    if lon < 121.2:
+      return "桃園市", "復興區"
+    elif lon < 121.5:
+      return "新北市", "烏來區"
+    else:
+      return "宜蘭縣", "大同鄉"
+  elif lat > 24.0:
+    if lon < 120.9:
+      return "苗栗縣", "泰安鄉"
+    elif lon < 121.2:
+      return "臺中市", "和平區"
+    else:
+      return "南投縣", "仁愛鄉"
+  elif lat > 23.5:
+    if lon < 120.8:
+      return "嘉義縣", "阿里山鄉"
+    else:
+      return "花蓮縣", "秀林鄉"
+  elif lat > 22.8:
+    if lon < 120.7:
+      return "高雄市", "桃源區"
+    else:
+      return "臺東縣", "海端鄉"
+  else:
+    return "屏東縣", "霧台鄉"
+
+
 @st.cache_data(ttl=86400)
 def load_mountain_data():
   overpass_url = "https://overpass-api.de/api/interpreter"
@@ -38,11 +76,18 @@ def load_mountain_data():
       name = tags.get("name", "未命名山峰")
       lat = element.get("lat")
       lon = element.get("lon")
+
       if lat and lon:
-        rows.append({"名稱": name, "WGS_X": lon, "WGS_Y": lat})
+        city, town = get_location_info(lat, lon)
+        rows.append({
+            "品牌/協會": "亞馬遜國家山岳協會",
+            "名稱": name,
+            "縣市": city,
+            "鄉鎮市區": town,
+            "WGS_X": lon,
+            "WGS_Y": lat,
+        })
     df = pd.DataFrame(rows)
-    df["縣市"] = "台灣地區"
-    df["鄉鎮市區"] = "全區"
     return df
   except Exception as e:
     return pd.DataFrame()
@@ -95,7 +140,7 @@ else:
 
     st.success(f"查詢成功！共找到 {len(filtered_df)} 筆符合條件的山岳資料。")
 
-    # 顯示表格
+    # 顯示表格（包含品牌、名稱、縣市、鄉鎮、經緯度欄位）
     st.subheader("📊 山岳資料列表")
     st.dataframe(filtered_df, use_container_width=True, height=300)
 
@@ -136,6 +181,8 @@ else:
         m_name = row["名稱"]
         lat = row["WGS_Y"]
         lon = row["WGS_X"]
+        c_name = row["县市" if "县市" in row else "縣市"]
+        t_name = row["鄉鎮市區"]
 
         encoded_query = urllib.parse.quote(f"{m_name} GPX")
         google_url = "https://www.google.com/search?q=" + encoded_query
@@ -143,7 +190,7 @@ else:
         popup_html = f"""
                 <div style="width:200px">
                     <h4><b>{m_name}</b></h4>
-                    <p>經度: {lon}<br>緯度: {lat}</p>
+                    <p><b>{c_name} {t_name}</b><br>經度: {lon}<br>緯度: {lat}</p>
                     <a href="{google_url}" target="_blank" style="color: blue; font-weight: bold;">🔍 點選 Google 搜尋 GPX</a>
                 </div>
                 """
