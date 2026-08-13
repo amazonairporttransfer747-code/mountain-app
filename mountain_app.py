@@ -22,14 +22,14 @@ layout="wide",
 
 APP_NAME = "亞馬遜國家山岳協會"
 
-# 可切換不同 Overpass 伺服器
+# Overpass API 備援伺服器
 OVERPASS_URLS = [
 https://overpass-api.de/api/interpreter,
 https://overpass.kumi.systems/api/interpreter,
 https://overpass.private.coffee/api/interpreter,
 ]
 
-# 請改成你自己的聯絡信箱
+# 請將 email 改成你自己的電子郵件
 HEADERS = {
 User-Agent: (
 TaiwanMountainQuery/1.0 
@@ -41,42 +41,10 @@ Content-Type: "application/x-www-form-urlencoded",
 
 
 # =========================================================
-# 台灣行政區資料
+# 台灣縣市與鄉鎮市區
 # =========================================================
 
 ADMIN_AREAS = {
-臺中市: [
-中區,
-東區,
-南區,
-西區,
-北區,
-北屯區,
-西屯區,
-南屯區,
-太平區,
-大里區,
-霧峰區,
-烏日區,
-豐原區,
-后里區,
-石岡區,
-東勢區,
-和平區,
-新社區,
-潭子區,
-大雅區,
-神岡區,
-大肚區,
-沙鹿區,
-龍井區,
-梧棲區,
-清水區,
-大甲區,
-外埔區,
-大安區,
-烏日區,
-],
 臺北市: [
 中正區,
 大同區,
@@ -136,6 +104,122 @@ ADMIN_AREAS = {
 新屋區,
 龍潭區,
 復興區,
+],
+臺中市: [
+中區,
+東區,
+南區,
+西區,
+北區,
+北屯區,
+西屯區,
+南屯區,
+太平區,
+大里區,
+霧峰區,
+烏日區,
+豐原區,
+后里區,
+石岡區,
+東勢區,
+和平區,
+新社區,
+潭子區,
+大雅區,
+神岡區,
+大肚區,
+沙鹿區,
+龍井區,
+梧棲區,
+清水區,
+大甲區,
+外埔區,
+大安區,
+],
+臺南市: [
+中西區,
+東區,
+南區,
+北區,
+安平區,
+安南區,
+永康區,
+歸仁區,
+新化區,
+左鎮區,
+玉井區,
+楠西區,
+南化區,
+仁德區,
+關廟區,
+龍崎區,
+官田區,
+麻豆區,
+佳里區,
+西港區,
+七股區,
+將軍區,
+學甲區,
+北門區,
+新營區,
+後壁區,
+白河區,
+東山區,
+六甲區,
+下營區,
+柳營區,
+鹽水區,
+善化區,
+大內區,
+山上區,
+新市區,
+安定區,
+],
+高雄市: [
+新興區,
+前金區,
+苓雅區,
+鹽埕區,
+鼓山區,
+旗津區,
+前鎮區,
+三民區,
+左營區,
+楠梓區,
+小港區,
+鳳山區,
+大寮區,
+仁武區,
+鳥松區,
+岡山區,
+橋頭區,
+燕巢區,
+田寮區,
+阿蓮區,
+路竹區,
+湖內區,
+茄萣區,
+永安區,
+彌陀區,
+梓官區,
+旗山區,
+美濃區,
+六龜區,
+甲仙區,
+杉林區,
+內門區,
+茂林區,
+桃源區,
+那瑪夏區,
+],
+基隆市: [
+中正區,
+七堵區,
+暖暖區,
+仁愛區,
+中山區,
+安樂區,
+信義區,
 ],
 新竹市: [
 東區,
@@ -265,82 +349,6 @@ ADMIN_AREAS = {
 大埔鄉,
 阿里山鄉,
 ],
-臺南市: [
-中西區,
-東區,
-南區,
-北區,
-安平區,
-安南區,
-永康區,
-歸仁區,
-新化區,
-左鎮區,
-玉井區,
-楠西區,
-南化區,
-仁德區,
-關廟區,
-龍崎區,
-官田區,
-麻豆區,
-佳里區,
-西港區,
-七股區,
-將軍區,
-學甲區,
-北門區,
-新營區,
-後壁區,
-白河區,
-東山區,
-六甲區,
-下營區,
-柳營區,
-鹽水區,
-善化區,
-大內區,
-山上區,
-新市區,
-安定區,
-],
-高雄市: [
-新興區,
-前金區,
-苓雅區,
-鹽埕區,
-鼓山區,
-旗津區,
-前鎮區,
-三民區,
-左營區,
-楠梓區,
-小港區,
-鳳山區,
-大寮區,
-仁武區,
-鳥松區,
-岡山區,
-橋頭區,
-燕巢區,
-田寮區,
-阿蓮區,
-路竹區,
-湖內區,
-茄萣區,
-永安區,
-彌陀區,
-梓官區,
-旗山區,
-美濃區,
-六龜區,
-甲仙區,
-杉林區,
-內門區,
-茂林區,
-桃源區,
-那瑪夏區,
-],
 屏東縣: [
 屏東市,
 潮州鎮,
@@ -449,65 +457,66 @@ ADMIN_AREAS = {
 
 
 # =========================================================
-# 行政區名稱轉換
+# 名稱轉換
 # =========================================================
 
 def normalize_admin_name(name):
 """
-    將臺、台等常見寫法轉成 OSM 查詢較容易比對的格式。
+    將常見的台、臺寫法統一。
     """
+result = str(name).strip()
+
 replacements = {
-臺: "台",
 台北: "臺北",
 台中: "臺中",
 台南: "臺南",
 台東: "臺東",
 }
 
-result = str(name).strip()
-
-for old, new in replacements.items():
-result = result.replace(old, new)
+for old_name, new_name in replacements.items():
+result = result.replace(old_name, new_name)
 
 return result
 
 
 # =========================================================
-# 建立 Overpass 查詢語法
+# 建立 Overpass 查詢
 # =========================================================
 
 def build_overpass_query(county, township):
 """
-    依縣市與鄉鎮市區建立查詢。
-    只查詢 node，避免一次取得 way/relation 大量資料。
+    依縣市與鄉鎮市區建立 Overpass QL。
     """
 
 county_name = normalize_admin_name(county)
 township_name = normalize_admin_name(township)
 
-# 使用台灣行政區的 OSM boundary
-# admin_level=6：縣市
-# admin_level=8：鄉鎮市區
 if township_name == "全部":
-area_filter = f"""
-area["boundary"="administrative"]
+area_query = f"""
+area
+["boundary"="administrative"]
 ["admin_level"="6"]
-["name"="{county_name}"]->.searchArea;
+["name"="{county_name}"]
+->.searchArea;
 """
     else:
-        area_filter = f"""
-area["boundary"="administrative"]
+        area_query = f"""
+area
+["boundary"="administrative"]
 ["admin_level"="8"]
 ["name"="{township_name}"]
-(area["boundary"="administrative"]
+(area
+["boundary"="administrative"]
 ["admin_level"="6"]
-["name"="{county_name}"])->.searchArea;
+["name"="{county_name}"]
+)
+->.searchArea;
 """
 
     query = f"""
 [out:json][timeout:120];
 
-{area_filter}
+{area_query}
 
 node
 ["natural"="peak"]
@@ -520,7 +529,7 @@ out body;
 
 
 # =========================================================
-# 從 Overpass API 查詢山峰
+# 查詢 OSM 山峰資料
 # =========================================================
 
 @st.cache_data(ttl=86400, show_spinner=False)
@@ -528,6 +537,7 @@ def query_mountains(county, township):
     query = build_overpass_query(county, township)
 
     last_error = ""
+    data = None
 
     for overpass_url in OVERPASS_URLS:
         try:
@@ -552,9 +562,16 @@ except requests.exceptions.Timeout:
 last_error = f"{overpass_url} 連線逾時。"
 
 except requests.exceptions.RequestException as error:
-last_error = f"{overpass_url} 連線錯誤：{error}"
+last_error = (
+f"{overpass_url} 連線錯誤：{error}"
+)
 
-else:
+except ValueError:
+last_error = (
+f"{overpass_url} 回傳內容不是有效的 JSON。"
+)
+
+if data is None:
 return pd.DataFrame(), (
 "所有 Overpass 伺服器都無法使用。
 
@@ -571,13 +588,6 @@ return pd.DataFrame(), (
 
 rows = []
 
-# 山峰名稱關鍵字
-# 這裡主要用於名稱篩選，不作為唯一判斷條件
-mountain_keywords = re.compile(
-r"(山|峰|岳|嶽|嶺|嶺|頂|頭|尖|巖|岩|崙|岡|台)",
-re.IGNORECASE,
-)
-
 for element in elements:
 tags = element.get("tags", {})
 
@@ -591,13 +601,8 @@ name = (
 tags.get("name")
 or tags.get("name:zh")
 or tags.get("name:en")
-or ""
+or "未命名"
 )
-
-# 只保留有名稱，且名稱含山岳相關字詞的山峰
-# 若你要保留所有 natural=peak，可移除這段 if
-if not mountain_keywords.search(name):
-continue
 
 osm_id = element.get("id")
 
@@ -618,8 +623,7 @@ else ""
 
 if not rows:
 return pd.DataFrame(), (
-該行政區有 OSM 山峰節點，
-但名稱沒有包含指定的山岳關鍵字。
+沒有取得有效的山峰座標。
 )
 
 result = pd.DataFrame(rows)
@@ -635,14 +639,17 @@ ascending=True,
 
 result = result.reset_index(drop=True)
 
-return result, f"查詢成功，共 {len(result)} 筆山峰座標。"
+return result, (
+f"查詢成功，共 {len(result)} 筆山峰座標。"
+)
 
 
 # =========================================================
-# 頁面標題
+# 建立頁面
 # =========================================================
 
 st.title("🏔️ 台灣 OSM 山峰座標查詢")
+
 st.caption(
 依縣市與鄉鎮市區查詢 OSM natural=peak 山峰節點
 )
@@ -651,7 +658,7 @@ st.markdown("---")
 
 
 # =========================================================
-# 查詢條件
+# 選擇縣市與鄉鎮
 # =========================================================
 
 st.subheader("📍 選擇查詢範圍")
@@ -676,10 +683,20 @@ selected_township = st.selectbox(
 options=township_options,
 )
 
+
+# =========================================================
+# 名稱篩選條件
+# =========================================================
+
 keyword = st.text_input(
 名稱關鍵字，可留空,
-placeholder="例如：玉山、雪山、山、峰、嶺",
+placeholder="例如：山、峰、岳、嶺、玉山、雪山",
 )
+
+st.caption(
+名稱篩選只會在查詢結果中進行，不會影響 OSM 行政區查詢。
+)
+
 
 search_button = st.button(
 🔍 開始查詢,
@@ -688,7 +705,7 @@ type="primary",
 
 
 # =========================================================
-# 查詢執行
+# 執行查詢
 # =========================================================
 
 if search_button:
@@ -708,15 +725,21 @@ if df.empty:
 st.warning(message)
 st.stop()
 
-# 進一步依使用者輸入的關鍵字篩選
+# 名稱篩選
 if keyword:
-keyword_mask = df["名稱"].str.contains(
+df = df[
+df["名稱"].str.contains(
 keyword,
 case=False,
 na=False,
 )
+].reset_index(drop=True)
 
-df = df[keyword_mask].reset_index(drop=True)
+if df.empty:
+st.warning(
+查詢到山峰資料，但沒有符合名稱關鍵字的結果。
+)
+st.stop()
 
 st.success(
 f"查詢完成，共 {len(df)} 筆山峰資料。"
@@ -749,6 +772,7 @@ format="%.6f",
 },
 )
 
+# CSV 下載
 csv_data = df.to_csv(
 index=False,
 encoding="utf-8-sig",
@@ -765,7 +789,8 @@ mountains.csv
 mime="text/csv",
 )
 
-st.subheader("🗺️ 山峰地圖")
+# 地圖
+st.subheader("🗺️ 山峰位置")
 
 map_df = df.rename(
 columns={
@@ -776,7 +801,10 @@ WGS_X: "longitude",
 
 st.map(
 map_df[
-["latitude", "longitude"]
+[
+latitude,
+longitude,
+]
 ]
 )
 
@@ -788,260 +816,25 @@ map_df[
 with st.expander("📖 使用說明"):
 st.markdown(
 """
-        1. 先選擇縣市。
-        2. 再選擇鄉鎮市區，或選擇「全部」。
-        3. 按下「開始查詢」。
-        4. 系統只查詢該行政區內的 OSM 山峰節點。
-        5. 可使用名稱關鍵字進一步篩選。
-        6. 可下載 CSV，欄位包含 WGS_X 與 WGS_Y。
+        1. 選擇縣市。
+        2. 選擇鄉鎮市區，或選擇「全部」。
+        3. 可輸入名稱關鍵字。
+        4. 按下「開始查詢」。
+        5. 系統只查詢該行政區內的 OSM 山峰節點。
+        6. 可下載山峰座標 CSV。
+        7. 可在地圖上查看查詢結果。
 
-        座標定義：
+        座標欄位：
 
         - `WGS_X`：WGS84 經度 longitude
         - `WGS_Y`：WGS84 緯度 latitude
+        - `OSM_ID`：OpenStreetMap 節點編號
         - 座標系統：EPSG:4326 / WGS 84
 
         OSM 查詢條件：
 
         - `natural=peak`
-        - 名稱包含：山、峰、岳、嶽、嶺、頂、頭、尖、巖、岩、崙、岡、台
+        - 查詢物件類型：node
+        - 查詢範圍：選定的縣市或鄉鎮市區
         """
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
