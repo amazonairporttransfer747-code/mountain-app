@@ -1,12 +1,12 @@
 import json
 import os
 
-# 檔案直接在根目錄，請把下方引號內的名稱改成您的實際檔名
-input_filename = "osm_peaks.json"  # <-- 請修改這裡的檔名
-output_filename = "peaks_fixed.geojson"
+# 修正：將檔名對應到您實際的檔案 export.json
+input_filename = "export.json"
+output_filename = "export.geojson"
 
 if not os.path.exists(input_filename):
-  print(f"找不到檔案：{input_filename}，請確認檔名是否正確！")
+  print(f"找不到檔案：{input_filename}")
 else:
   with open(input_filename, "r", encoding="utf-8") as f:
     data = json.load(f)
@@ -20,40 +20,32 @@ else:
       tags = item.get("tags", {})
 
       if lat and lon:
-        # 提取海拔高度，若無則標記為「未知」
+        # 確保抓取海拔 (ele)，若無則顯示未知
         ele = tags.get("ele", "未知")
-        # 提取中文名稱
         name = tags.get("name:zh", tags.get("name", "未命名"))
 
         feature = {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [
-                    float(lon),
-                    float(lat),
-                ],  # GeoJSON 標準格式：[經度(X), 緯度(Y)]，修正座標偏移
+                "coordinates": [float(lon), float(lat)],  # 確保 [經度, 緯度] 軸向正確
             },
             "properties": {
                 "name": name,
                 "ele": ele,
                 "lat": lat,
                 "lon": lon,
-                **tags,  # 保留所有原始標籤
+                **tags,
             },
         }
         features.append(feature)
 
-  # 排序邏輯：
-  # 1. 由北到南：緯度 (lat) 由大到小降冪排序
-  # 2. 由西到東：經度 (lon) 由小到大升冪排序
+  # 嚴格由北到南排序 (緯度由大到小)
   features.sort(key=lambda x: (-x["properties"]["lat"], x["properties"]["lon"]))
 
-  # 建立 GeoJSON 結構
   geojson = {"type": "FeatureCollection", "features": features}
 
-  # 儲存檔案
   with open(output_filename, "w", encoding="utf-8") as f:
     json.dump(geojson, f, ensure_ascii=False, indent=2)
 
-  print(f"處理成功！已產生成果檔案：{output_filename}")
+  print(f"成功處理並更新 {output_filename}！")
