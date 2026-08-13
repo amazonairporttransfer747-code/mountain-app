@@ -24,7 +24,7 @@ def load_mountain_data():
     out body;
     """
 
-  # 加上 User-Agent 標頭，防止 Overpass API 回傳 406 錯誤
+  # 加上 User-Agent 避免 406 錯誤
   headers = {"User-Agent": "AmazonMountainApp/1.0 (Contact: user@example.com)"}
 
   try:
