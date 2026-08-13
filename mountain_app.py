@@ -15,11 +15,19 @@ st.markdown("---")
 @st.cache_data
 def load_mountain_data():
   try:
-    # 讀取指定的 CSV 檔案
     df = pd.read_csv("filtered_mountain_data.csv", encoding="utf-8-sig")
+
     # 如果 CSV 裡面原本有品牌欄位則自動移除
     if "品牌/協會" in df.columns:
       df = df.drop(columns=["品牌/協會"])
+
+    # 智慧座標校正：如果 X 和 Y 欄位數值顛倒（例如 X 存成緯度 23-25，Y 存成經度 120-122），自動互換
+    if "WGS_X" in df.columns and "WGS_Y" in df.columns:
+      # 台灣緯度約 21~25，經度約 119~122
+      if df["WGS_X"].mean() < 30 and df["WGS_Y"].mean() > 100:
+        # 發現 X 跟 Y 顛倒了，進行互換
+        df["WGS_X"], df["WGS_Y"] = df["WGS_Y"], df["WGS_X"]
+
     return df
   except Exception as e:
     st.error(
